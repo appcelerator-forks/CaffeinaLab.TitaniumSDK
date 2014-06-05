@@ -11,130 +11,131 @@
 #import "TiUtils.h"
 #import "ImageLoader.h"
 #ifdef USE_TI_UI2DMATRIX
-	#import "Ti2DMatrix.h"
+#import "Ti2DMatrix.h"
 #endif
 #if defined(USE_TI_UIIOS3DMATRIX) || defined(USE_TI_UI3DMATRIX)
-	#import "Ti3DMatrix.h"
+#import "Ti3DMatrix.h"
 #endif
 #import "TiViewProxy.h"
 #import "TiApp.h"
 #import "UIImage+Resize.h"
 
+
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
 {
 	VerboseLog(@"ScrollView:%@, keyboardTop:%f minimumContentHeight:%f",scrollView,keyboardTop,minimumContentHeight);
-
+    
 	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] topMostView]];
 	//First, find out how much we have to compensate.
-
+    
 	CGFloat obscuredHeight = scrollVisibleRect.origin.y + scrollVisibleRect.size.height - keyboardTop;
 	//ObscuredHeight is how many vertical pixels the keyboard obscures of the scroll view. Some of this may be acceptable.
-
+    
 	CGFloat unimportantArea = MAX(scrollVisibleRect.size.height - minimumContentHeight,0);
 	//It's possible that some of the covered area doesn't matter. If it all matters, unimportant is 0.
-
+    
 	//As such, obscuredHeight is now how much actually matters of scrollVisibleRect.
-
+    
 	CGFloat bottomInset = MAX(0,obscuredHeight-unimportantArea);
 	[scrollView setContentInset:UIEdgeInsetsMake(0, 0, bottomInset, 0)];
-
+    
 	CGPoint offset = [scrollView contentOffset];
-
+    
 	if(offset.y + bottomInset < 0 )
 	{
 		offset.y = -bottomInset;
 		[scrollView setContentOffset:offset animated:YES];
 	}
-
+    
 	VerboseLog(@"ScrollVisibleRect(%f,%f),%fx%f; obscuredHeight:%f; unimportantArea:%f",
-			scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
-			obscuredHeight,unimportantArea);
+               scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
+               obscuredHeight,unimportantArea);
 }
 
 void OffsetScrollViewForRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight,CGRect responderRect)
 {
 	VerboseLog(@"ScrollView:%@, keyboardTop:%f minimumContentHeight:%f responderRect:(%f,%f),%fx%f;",
-			scrollView,keyboardTop,minimumContentHeight,
-			responderRect.origin.x,responderRect.origin.y,responderRect.size.width,responderRect.size.height);
-
+               scrollView,keyboardTop,minimumContentHeight,
+               responderRect.origin.x,responderRect.origin.y,responderRect.size.width,responderRect.size.height);
+    
 	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] topMostView]];
 	//First, find out how much we have to compensate.
-
+    
 	CGFloat obscuredHeight = scrollVisibleRect.origin.y + scrollVisibleRect.size.height - keyboardTop;
 	//ObscuredHeight is how many vertical pixels the keyboard obscures of the scroll view. Some of this may be acceptable.
-
+    
 	//It's possible that some of the covered area doesn't matter. If it all matters, unimportant is 0.
-
+    
 	//As such, obscuredHeight is now how much actually matters of scrollVisibleRect.
-
+    
 	VerboseLog(@"ScrollVisibleRect(%f,%f),%fx%f; obscuredHeight:%f;",
-			scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
-			obscuredHeight);
-
+               scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
+               obscuredHeight);
+    
 	scrollVisibleRect.size.height -= MAX(0,obscuredHeight);
-
+    
 	//Okay, the scrollVisibleRect.size now represents the actually visible area.
-
+    
 	CGPoint offsetPoint = [scrollView contentOffset];
-
+    
 	CGPoint offsetForBottomRight;
 	offsetForBottomRight.x = responderRect.origin.x + responderRect.size.width - scrollVisibleRect.size.width;
 	offsetForBottomRight.y = responderRect.origin.y + responderRect.size.height - scrollVisibleRect.size.height;
-
+    
 	offsetPoint.x = MIN(responderRect.origin.x,MAX(offsetPoint.x,offsetForBottomRight.x));
 	offsetPoint.y = MIN(responderRect.origin.y,MAX(offsetPoint.y,offsetForBottomRight.y));
 	VerboseLog(@"OffsetForBottomright:(%f,%f) OffsetPoint:(%f,%f)",
-			offsetForBottomRight.x, offsetForBottomRight.y, offsetPoint.x, offsetPoint.y);
-
+               offsetForBottomRight.x, offsetForBottomRight.y, offsetPoint.x, offsetPoint.y);
+    
 	CGFloat maxOffset = [scrollView contentInset].bottom + [scrollView contentSize].height - scrollVisibleRect.size.height;
-
+	
 	if(maxOffset < offsetPoint.y)
 	{
 		offsetPoint.y = MAX(0,maxOffset);
 	}
-
+    
 	[scrollView setContentOffset:offsetPoint animated:YES];
 }
 
 void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight,CGRect responderRect)
 {
 	VerboseLog(@"ScrollView:%@, keyboardTop:%f minimumContentHeight:%f responderRect:(%f,%f),%fx%f;",
-			scrollView,keyboardTop,minimumContentHeight,
-			responderRect.origin.x,responderRect.origin.y,responderRect.size.width,responderRect.size.height);
-
+               scrollView,keyboardTop,minimumContentHeight,
+               responderRect.origin.x,responderRect.origin.y,responderRect.size.width,responderRect.size.height);
+    
 	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] topMostView]];
 	//First, find out how much we have to compensate.
-
+    
 	CGFloat obscuredHeight = scrollVisibleRect.origin.y + scrollVisibleRect.size.height - keyboardTop;
 	//ObscuredHeight is how many vertical pixels the keyboard obscures of the scroll view. Some of this may be acceptable.
-
+    
 	CGFloat unimportantArea = MAX(scrollVisibleRect.size.height - minimumContentHeight,0);
 	//It's possible that some of the covered area doesn't matter. If it all matters, unimportant is 0.
-
+    
 	//As such, obscuredHeight is now how much actually matters of scrollVisibleRect.
-
+    
 	[scrollView setContentInset:UIEdgeInsetsMake(0, 0, MAX(0,obscuredHeight-unimportantArea), 0)];
-
+    
 	VerboseLog(@"ScrollVisibleRect(%f,%f),%fx%f; obscuredHeight:%f; unimportantArea:%f",
-			scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
-			obscuredHeight,unimportantArea);
-
+               scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
+               obscuredHeight,unimportantArea);
+    
 	scrollVisibleRect.size.height -= MAX(0,obscuredHeight);
-
+    
 	//Okay, the scrollVisibleRect.size now represents the actually visible area.
-
+    
 	CGPoint offsetPoint = [scrollView contentOffset];
-
+    
 	if(!CGRectIsEmpty(responderRect))
 	{
 		CGPoint offsetForBottomRight;
 		offsetForBottomRight.x = responderRect.origin.x + responderRect.size.width - scrollVisibleRect.size.width;
 		offsetForBottomRight.y = responderRect.origin.y + responderRect.size.height - scrollVisibleRect.size.height;
-
+        
 		offsetPoint.x = MIN(responderRect.origin.x,MAX(offsetPoint.x,offsetForBottomRight.x));
 		offsetPoint.y = MIN(responderRect.origin.y,MAX(offsetPoint.y,offsetForBottomRight.y));
 		VerboseLog(@"OffsetForBottomright:(%f,%f) OffsetPoint:(%f,%f)",
-				offsetForBottomRight.x, offsetForBottomRight.y, offsetPoint.x, offsetPoint.y);
+                   offsetForBottomRight.x, offsetForBottomRight.y, offsetPoint.x, offsetPoint.y);
 	}
 	else
 	{
@@ -142,7 +143,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 		offsetPoint.y = MAX(0,offsetPoint.y);
 		VerboseLog(@"OffsetPoint:(%f,%f)",offsetPoint.x, offsetPoint.y);
 	}
-
+    
 	[scrollView setContentOffset:offsetPoint animated:YES];
 }
 
@@ -215,7 +216,7 @@ DEFINE_EXCEPTIONS
 	self = [super init];
 	if (self != nil)
 	{
-
+        
 	}
 	return self;
 }
@@ -236,7 +237,7 @@ DEFINE_EXCEPTIONS
         [[self gestureRecognizerForEvent:@"lswipe"] setEnabled:YES];
     }
     if ([(TiViewProxy*)proxy _hasListeners:@"pinch"]) {
-         [[self gestureRecognizerForEvent:@"pinch"] setEnabled:YES];
+        [[self gestureRecognizerForEvent:@"pinch"] setEnabled:YES];
     }
     if ([(TiViewProxy*)proxy _hasListeners:@"longpress"]) {
         [[self gestureRecognizerForEvent:@"longpress"] setEnabled:YES];
@@ -246,34 +247,34 @@ DEFINE_EXCEPTIONS
 -(BOOL)proxyHasGestureListeners
 {
     return [(TiViewProxy*)proxy _hasListeners:@"swipe"] ||
-            [(TiViewProxy*)proxy _hasListeners:@"pinch"] ||
-            [(TiViewProxy*)proxy _hasListeners:@"longpress"];
+    [(TiViewProxy*)proxy _hasListeners:@"pinch"] ||
+    [(TiViewProxy*)proxy _hasListeners:@"longpress"];
 }
 
 -(BOOL)proxyHasTapListener
 {
 	return [proxy _hasListeners:@"singletap"] ||
-			[proxy _hasListeners:@"doubletap"] ||
-			[proxy _hasListeners:@"twofingertap"];
+    [proxy _hasListeners:@"doubletap"] ||
+    [proxy _hasListeners:@"twofingertap"];
 }
 
 -(BOOL)proxyHasTouchListener
 {
 	return [proxy _hasListeners:@"touchstart"] ||
-			[proxy _hasListeners:@"touchcancel"] ||
-			[proxy _hasListeners:@"touchend"] ||
-			[proxy _hasListeners:@"touchmove"] ||
-			[proxy _hasListeners:@"click"] ||
-			[proxy _hasListeners:@"dblclick"];
+    [proxy _hasListeners:@"touchcancel"] ||
+    [proxy _hasListeners:@"touchend"] ||
+    [proxy _hasListeners:@"touchmove"] ||
+    [proxy _hasListeners:@"click"] ||
+    [proxy _hasListeners:@"dblclick"];
 }
 
 -(void)updateTouchHandling
 {
     BOOL touchEventsSupported = [self viewSupportsBaseTouchEvents];
     handlesTouches = touchEventsSupported && (
-                [self proxyHasTouchListener]
-                || [self proxyHasTapListener]
-                || [self proxyHasGestureListeners]);
+                                              [self proxyHasTouchListener]
+                                              || [self proxyHasTapListener]
+                                              || [self proxyHasGestureListeners]);
     [self ensureGestureListeners];
     // If a user has not explicitly set whether or not the view interacts, base it on whether or
     // not it handles events, and if not, set it to the interaction default.
@@ -285,9 +286,9 @@ DEFINE_EXCEPTIONS
 -(void)initializeState
 {
 	virtualParentTransform = CGAffineTransformIdentity;
-
+	
 	[self updateTouchHandling];
-
+    
 	self.backgroundColor = [UIColor clearColor];
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
@@ -374,7 +375,7 @@ DEFINE_EXCEPTIONS
 -(void)setFrame:(CGRect)frame
 {
 	[super setFrame:frame];
-
+	
 	// this happens when a view is added to another view but not
 	// through the framework (such as a tableview header) and it
 	// means we need to force the layout of our children
@@ -462,21 +463,41 @@ DEFINE_EXCEPTIONS
 
 -(void)setShadow_:(id)args
 {
-    if (args != nil) {
+    if(args != nil)
+    {
         self.layer.masksToBounds = NO;
-
+        self.clipsToBounds = NO;
+        
+        //Support for retina display
+        CGFloat scale;
+        if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
+            scale=[[UIScreen mainScreen] scale];
+        } else {
+            scale=1; //only called on iPad.
+        }
+        
+        self.layer.rasterizationScale = scale;
+        
+        [self.layer setShouldRasterize:YES];
+        
         if ([args objectForKey:@"shadowOffset"] != nil) {
             CGPoint p = [TiUtils pointValue: [args objectForKey:@"shadowOffset"]];
             CGSize shadowOffset = {p.x,p.y};
-
+            
             self.layer.shadowOffset = shadowOffset;
-        }
-        if ([args objectForKey:@"shadowRadius"] != nil) {
-            self.layer.shadowRadius = [TiUtils floatValue:[args objectForKey:@"shadowRadius"]];
         }
         if ([args objectForKey:@"shadowOpacity"] != nil) {
             self.layer.shadowOpacity = [TiUtils floatValue:[args objectForKey:@"shadowOpacity"]];
         }
+        if ([args objectForKey:@"shadowRadius"] != nil) {
+            self.layer.shadowRadius = [TiUtils floatValue:[args objectForKey:@"shadowRadius"]];
+        }
+        
+        if ([args objectForKey:@"shadowColor"] != nil) {
+            UIColor * shadowColor = [[TiUtils colorValue:[args objectForKey:@"shadowColor"]] _color];
+            [self.layer setShadowColor:[shadowColor CGColor]];
+        }
+        
     }
 }
 
@@ -521,7 +542,7 @@ DEFINE_EXCEPTIONS
 -(void)setTileBackground_:(id)image
 {
     UIImage* tileImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
-
+    
 }
 
 -(void)setOpacity_:(id)opacity
@@ -555,13 +576,13 @@ DEFINE_EXCEPTIONS
         }, NO);
         return;
     }
-
+    
     UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
     if (bgImage == nil) {
         [self backgroundImageLayer].contents = nil;
         return;
     }
-
+    
     // Due to coordinate system shenanagins (there are multiple translations between the UIKit coordinate system
     // and the CG coordinate system happening here) we have to manually flip the background image to render
     // before passing it to the tiling system (via passing it through another UIGraphics context; this orients the
@@ -573,13 +594,13 @@ DEFINE_EXCEPTIONS
     // NOTE: Doing this begins the image tesselation starting at the upper-left, which is considered the 'origin' for all
     // drawing operations on iOS (and presumably Android). By removing this code and instead blitting the [bgImage CGImage]
     // directly into the graphics context, it tesselates from the lower-left.
-
+    
     UIGraphicsBeginImageContextWithOptions(bgImage.size, NO, bgImage.scale);
     CGContextRef imageContext = UIGraphicsGetCurrentContext();
     CGContextDrawImage(imageContext, CGRectMake(0, 0, bgImage.size.width , bgImage.size.height), [bgImage CGImage]);
     UIImage* translatedImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-
+    
     UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, bgImage.scale);
     CGContextRef background = UIGraphicsGetCurrentContext();
     if (background == nil) {
@@ -591,14 +612,14 @@ DEFINE_EXCEPTIONS
     CGContextDrawTiledImage(background, imageRect, [translatedImage CGImage]);
     UIImage* renderedBg = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-
+    
     [self backgroundImageLayer].contents = (id)renderedBg.CGImage;
 }
 
 -(void)setBackgroundImage_:(id)image
 {
     UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
-
+    
     if (backgroundRepeat) {
         [self renderRepeatedBackground:bgImage];
     }
@@ -614,7 +635,7 @@ DEFINE_EXCEPTIONS
             }
         }
     }
-
+    
     self.clipsToBounds = bgImage!=nil;
     self.backgroundImage = bgImage;
 }
@@ -733,7 +754,7 @@ DEFINE_EXCEPTIONS
 -(void)animate:(TiAnimation *)newAnimation
 {
 	RELEASE_TO_NIL(animation);
-
+	
 	if ([self.proxy isKindOfClass:[TiViewProxy class]] && [(TiViewProxy*)self.proxy viewReady]==NO)
 	{
 		DebugLog(@"[DEBUG] Ti.View.animate() called before view %@ was ready: Will re-attempt", self);
@@ -746,16 +767,16 @@ DEFINE_EXCEPTIONS
 		[self performSelector:@selector(animate:) withObject:newAnimation afterDelay:0.01];
 		return;
 	}
-
+	
 	animationDelayGuard = 0;
     BOOL resetState = NO;
     if ([self.proxy isKindOfClass:[TiViewProxy class]] && [(TiViewProxy*)self.proxy willBeRelaying]) {
         DeveloperLog(@"RESETTING STATE");
         resetState = YES;
     }
-
+    
     animationDelayGuardForLayout = 0;
-
+    
     if (newAnimation != nil) {
         RELEASE_TO_NIL(animation);
         animation = [newAnimation retain];
@@ -806,14 +827,14 @@ DEFINE_EXCEPTIONS
 	{
 		value = nil;
 	}
-
+    
 	SEL method = SetterWithObjectForKrollProperty(key);
 	if([self respondsToSelector:method])
 	{
 		[self performSelector:method withObject:value withObject:props];
 		return;
 	}
-
+    
 	method = SetterForKrollProperty(key);
 	if([self respondsToSelector:method])
 	{
@@ -824,7 +845,7 @@ DEFINE_EXCEPTIONS
 -(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
 {
 	TiViewProxy * oldProxy = (TiViewProxy *)[self proxy];
-
+	
 	// We can safely skip everything if we're transferring to ourself.
 	if (oldProxy != newProxy) {
 		NSArray * oldProperties = (NSArray *)[oldProxy allKeys];
@@ -832,13 +853,13 @@ DEFINE_EXCEPTIONS
 		NSArray * keySequence = [newProxy keySequence];
 		[oldProxy retain];
 		[self retain];
-
+		
 		[newProxy setReproxying:YES];
-
+		
 		[oldProxy setView:nil];
 		[newProxy setView:self];
 		[self setProxy:[newProxy retain]];
-
+		
 		//The important sequence first:
 		for (NSString * thisKey in keySequence)
 		{
@@ -848,7 +869,7 @@ DEFINE_EXCEPTIONS
 				[self setKrollValue:newValue forKey:thisKey withObject:nil];
 			}
 		}
-
+		
 		for (NSString * thisKey in oldProperties)
 		{
 			if([newProperties containsObject:thisKey] || [keySequence containsObject:thisKey])
@@ -857,21 +878,21 @@ DEFINE_EXCEPTIONS
 			}
 			[self setKrollValue:nil forKey:thisKey withObject:nil];
 		}
-
+		
 		for (NSString * thisKey in newProperties)
 		{
 			if ([keySequence containsObject:thisKey])
 			{
 				continue;
 			}
-
+			
 			// Always set the new value, even if 'equal' - some view setters (as in UIImageView)
 			// use internal voodoo to determine what to display.
 			// TODO: We may be able to take this out once the imageView.url property is taken out, and change it back to an equality test.
 			id newValue = [newProxy valueForUndefinedKey:thisKey];
 			[self setKrollValue:newValue forKey:thisKey withObject:nil];
 		}
-
+		
 		if (deep) {
 			NSArray *subProxies = [newProxy children];
 			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
@@ -880,7 +901,7 @@ DEFINE_EXCEPTIONS
 			}];
 		}
 		[oldProxy release];
-
+		
 		[newProxy setReproxying:NO];
 		[self release];
 	}
@@ -889,14 +910,14 @@ DEFINE_EXCEPTIONS
 -(BOOL)validateTransferToProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
 {
 	TiViewProxy * oldProxy = (TiViewProxy *)[self proxy];
-
+	
 	if (oldProxy == newProxy) {
 		return YES;
 	}
 	if (![newProxy isMemberOfClass:[oldProxy class]]) {
 		return NO;
 	}
-
+	
 	__block BOOL result = YES;
 	if (deep) {
 		NSArray *subProxies = [newProxy children];
@@ -935,7 +956,7 @@ DEFINE_EXCEPTIONS
 		singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedTap:)];
 		[self configureGestureRecognizer:singleTapRecognizer];
 		[self addGestureRecognizer:singleTapRecognizer];
-
+        
 		if (doubleTapRecognizer != nil) {
 			[singleTapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
 		}
@@ -950,7 +971,7 @@ DEFINE_EXCEPTIONS
 		[doubleTapRecognizer setNumberOfTapsRequired:2];
 		[self configureGestureRecognizer:doubleTapRecognizer];
 		[self addGestureRecognizer:doubleTapRecognizer];
-
+		
 		if (singleTapRecognizer != nil) {
 			[singleTapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
 		}
@@ -1036,7 +1057,7 @@ DEFINE_EXCEPTIONS
 {
 	CGPoint tapPoint = [recognizer locationInView:self];
 	NSDictionary *event = [TiUtils pointToDictionary:tapPoint];
-
+	
 	if ([recognizer numberOfTouchesRequired] == 2) {
 		[proxy fireEvent:@"twofingertap" withObject:event];
 	}
@@ -1097,13 +1118,13 @@ DEFINE_EXCEPTIONS
 			swipeString = @"unknown";
 			break;
 	}
-
+	
 	CGPoint tapPoint = [recognizer locationInView:self];
 	NSMutableDictionary *event = [[TiUtils pointToDictionary:tapPoint] mutableCopy];
 	[event setValue:swipeString forKey:@"direction"];
 	[proxy fireEvent:@"swipe" withObject:event];
 	[event release];
-
+    
 }
 
 #pragma mark Touch Events
@@ -1127,7 +1148,7 @@ DEFINE_EXCEPTIONS
 - (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event
 {
 	BOOL hasTouchListeners = [self hasTouchableListener];
-
+    
 	// if we don't have any touch listeners, see if interaction should
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
@@ -1136,19 +1157,19 @@ DEFINE_EXCEPTIONS
 	{
 		return nil;
 	}
-
+	
     // OK, this is problematic because of the situation where:
     // touchDelegate --> view --> button
     // The touch never reaches the button, because the touchDelegate is as deep as the touch goes.
-
+    
     /*
-	// delegate to our touch delegate if we're hit but it's not for us
-	if (hasTouchListeners==NO && touchDelegate!=nil)
-	{
-		return touchDelegate;
-	}
+     // delegate to our touch delegate if we're hit but it's not for us
+     if (hasTouchListeners==NO && touchDelegate!=nil)
+     {
+     return touchDelegate;
+     }
      */
-
+	
     return [super hitTest:point withEvent:event];
 }
 
@@ -1179,7 +1200,7 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-
+	
 	if (handlesTouches)
 	{
 		NSDictionary *evt = [TiUtils pointToDictionary:[touch locationInView:self]];
@@ -1231,7 +1252,7 @@ DEFINE_EXCEPTIONS
 			[proxy fireEvent:@"touchend" withObject:evt propagate:YES];
 			[self handleControlEvents:UIControlEventTouchCancel];
 		}
-
+        
 		// Click handling is special; don't propagate if we have a delegate,
 		// but DO invoke the touch delegate.
 		// clicks should also be handled by any control the view is embedded in.
@@ -1341,7 +1362,7 @@ DEFINE_EXCEPTIONS
 	ENSURE_UI_THREAD_1_ARG(event);
 	// unfortunately on a remove, we have to check all of them
 	// since we might be removing one but we still have others
-
+    
 	[self updateTouchHandling];
     if ([event isEqualToString:@"swipe"]) {
         [[self gestureRecognizerForEvent:@"uswipe"] setEnabled:NO];
