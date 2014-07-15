@@ -1,4 +1,4 @@
-## Switch
+## Ti.UI.Switch
 
 ### onTintColor
 
@@ -10,7 +10,7 @@ Ti.UI.createSwitch({
 });
 ```
 
-## View
+## Ti.UI.View
 
 ### shadow
 
@@ -27,4 +27,17 @@ Ti.UI.createView({
 		}
 	}
 });
+```
+
+## Ti.UI.ProgressBar
+
+### progressTintColor/trackTintColor
+
+Set the background and foreground of the progressbar
+
+```javascript
+Ti.UI.createProgressBar({
+	progressTintColor: 'green',
+	trackTintColor: 'red'
+})
 ```
