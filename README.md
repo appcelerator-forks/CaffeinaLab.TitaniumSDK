@@ -1,3 +1,5 @@
+# 3.2.3.GA
+
 ## Ti.UI.Switch
 
 ### onTintColor
